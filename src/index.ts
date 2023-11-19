@@ -4,6 +4,9 @@ import { Server } from 'socket.io'
 import { createServer } from 'http'
 import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient } from "redis";
+import dotenv from 'dotenv'
+
+dotenv.config({})
 
 const app = express()
 
@@ -20,12 +23,18 @@ const io = new Server(httpServer, {
     cors: {origin: '*'}
 })
 
-/* const pubClient = createClient({ url: "" });
+const pubClient = createClient({
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT)
+    }
+});
 const subClient = pubClient.duplicate();
 
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
   io.adapter(createAdapter(pubClient, subClient));
-}); */
+});
 
 io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected`);

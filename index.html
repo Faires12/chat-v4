@@ -53,7 +53,7 @@
         <input type="text" class="msgInput" placeholder="Digite sua mensagem..." id="msgInput">
     </div>
     <script>
-        const socket = io('http://localhost:3000')
+        const socket = io('http://chat-lb-415879988.us-east-2.elb.amazonaws.com')
         let author = ""
 
         while(!author) {
