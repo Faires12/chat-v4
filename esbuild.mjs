@@ -5,6 +5,6 @@ await esbuild.build({
   bundle: true,
   minify: true,
   sourcemap: false,
-  outfile: 'build/out.js',
+  outfile: 'build/index.js',
   platform: "node"
 })
