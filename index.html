@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column-reverse;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .chatMsg {
+            width: 100%;
+            word-break: break-all;
+            padding: 10px;
+            font-size: 20px;
+        }
+
+        .bold {
+            font-weight: 700;
+        }
+
+        .msgInput {
+            width: 100%;
+            min-height: 70px;
+            font-size: 20px;
+            padding-left: 10px;
+        }
+    </style>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="chat" id="chatDiv">
+        </div>
+        <input type="text" class="msgInput" placeholder="Digite sua mensagem..." id="msgInput">
+    </div>
+    <script>
+        const socket = io('http://localhost:3000')
+        let author = ""
+
+        while(!author) {
+            author = window.prompt('Insira o seu nome').trim()
+        }
+
+        const msgInput = document.getElementById("msgInput")
+        const chatDiv = document.getElementById("chatDiv")
+
+        msgInput.addEventListener("keydown", e => {
+            if(e.key === "Enter" && e.target.value) {
+                socket.emit('message', {author: author, message: e.target.value})
+                e.target.value = ""
+            }
+        })
+
+        socket.on('message', (msg) => {
+            const div = document.createElement('div');
+            div.classList.add('chatMsg');
+
+            const author = document.createElement('span')
+            author.classList.add('bold')
+            author.textContent = `${msg.author}: `
+
+            const message = document.createElement('span')
+            message.textContent = msg.message
+
+            div.appendChild(author)
+            div.appendChild(message)
+            chatDiv.prepend(div)
+        })
+    </script>
+</body>
+</html>
