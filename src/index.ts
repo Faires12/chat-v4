@@ -33,6 +33,7 @@ const pubClient = createClient({
 const subClient = pubClient.duplicate();
 
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+  console.log('Redis connected');
   io.adapter(createAdapter(pubClient, subClient));
 });
 
