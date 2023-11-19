@@ -53,7 +53,9 @@
         <input type="text" class="msgInput" placeholder="Digite sua mensagem..." id="msgInput">
     </div>
     <script>
-        const socket = io('http://chat-lb-415879988.us-east-2.elb.amazonaws.com')
+        const socket = io('http://chat-lb-415879988.us-east-2.elb.amazonaws.com', {
+            transports: [ "websocket" ]
+        })
         let author = ""
 
         while(!author) {

@@ -1,10 +1,23 @@
-import express from 'express'
-import cors from 'cors'
-import { Server } from 'socket.io'
-import { createServer } from 'http'
+import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { createAdapter } from "@socket.io/redis-adapter";
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
+import { createServer } from 'http';
 import { createClient } from "redis";
-import dotenv from 'dotenv'
+import { Server } from 'socket.io';
+
+const loadSecrets = async () => {
+    const client = new SecretsManagerClient({ region: "us-east-2" });
+
+    const command = new GetSecretValueCommand({
+        SecretId: 'my-secrets'
+    });
+
+    const res = await client.send(command)
+
+    return res.SecretString ? JSON.parse(res.SecretString) : null
+}
 
 dotenv.config({})
 
@@ -12,6 +25,8 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
+
+loadSecrets()
 
 app.get('/health', (req, res) => {
     return res.status(200).send('Health check ok!')
@@ -23,19 +38,22 @@ const io = new Server(httpServer, {
     cors: {origin: '*'}
 })
 
-const pubClient = createClient({
-    password: process.env.REDIS_PASSWORD,
-    socket: {
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT)
-    }
-});
-const subClient = pubClient.duplicate();
-
-Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
-  console.log('Redis connected');
-  io.adapter(createAdapter(pubClient, subClient));
-});
+loadSecrets().then(secret => {
+    console.log('Loaded secrets');
+    const pubClient = createClient({
+        password: secret.REDIS_PASSWORD,
+        socket: {
+            host: secret.REDIS_HOST,
+            port: Number(secret.REDIS_PORT)
+        }
+    });
+    const subClient = pubClient.duplicate();
+    
+    Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+      console.log('Redis connected');
+      io.adapter(createAdapter(pubClient, subClient));
+    });
+})
 
 io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected`);
